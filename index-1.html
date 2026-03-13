@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>СРК Дневник</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #FFF8F0; font-family: Georgia, serif; display: flex; justify-content: center; min-height: 100vh; }
+    #app { width: 100%; max-width: 420px; display: flex; flex-direction: column; min-height: 100vh; }
+    .login-wrap { display: flex; flex-direction: column; align-items: center; padding: 48px 24px; width: 100%; }
+    .login-logo { font-size: 56px; margin-bottom: 12px; }
+    .login-title { font-size: 26px; font-weight: bold; color: #2D2D2D; margin-bottom: 8px; }
+    .login-sub { font-size: 14px; color: #888; text-align: center; line-height: 1.5; margin-bottom: 32px; }
+    .login-box { width: 100%; background: #fff; border-radius: 20px; padding: 24px; border: 1px solid #F0E8E0; }
+    .login-label { font-size: 13px; color: #888; margin-bottom: 8px; }
+    .login-input { width: 100%; border: 2px solid #F0E8E0; border-radius: 12px; padding: 14px; font-size: 18px; margin-bottom: 8px; font-family: monospace; outline: none; letter-spacing: 2px; text-align: center; }
+    .login-hint { background: #FFF3E0; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #E65100; line-height: 1.5; margin-bottom: 16px; }
+    .login-btn { width: 100%; background: #FF6B6B; color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; font-family: inherit; }
+    .login-error { color: #FF6B6B; font-size: 13px; margin-bottom: 8px; }
+    .hidden { display: none !important; }
+    header { background: #fff; border-bottom: 2px solid #F0E8E0; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .logo { font-size: 24px; }
+    .app-title { font-weight: bold; font-size: 16px; color: #2D2D2D; }
+    .app-sub { font-size: 10px; color: #888; }
+    .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    nav { display: flex; gap: 4px; }
+    .nav-btn { padding: 5px 10px; border-radius: 20px; border: 1px solid #F0E8E0; background: transparent; cursor: pointer; font-size: 12px; color: #888; font-family: inherit; }
+    .nav-btn.active { background: #FF6B6B; color: #fff; border-color: #FF6B6B; }
+    .refresh-btn { background: transparent; border: none; font-size: 11px; color: #888; cursor: pointer; }
+    .body { flex: 1; padding: 16px 16px 100px; overflow-y: auto; }
+    .stress-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #FFF3E0; border-radius: 12px; margin-bottom: 16px; border: 1px solid #FFE0B2; }
+    .stress-label { font-size: 13px; color: #888; flex: 1; }
+    .stress-value-btn { background: transparent; border: none; font-size: 14px; cursor: pointer; color: #2D2D2D; font-family: inherit; }
+    .stress-add-btn { background: transparent; border: 1px dashed #FFB347; border-radius: 8px; padding: 3px 10px; font-size: 12px; color: #FFB347; cursor: pointer; }
+    .timeline { display: flex; flex-direction: column; }
+    .meal-block { display: flex; align-items: flex-start; }
+    .timeline-left { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; padding-top: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #FF6B6B; flex-shrink: 0; border: 2px solid #FFF8F0; box-shadow: 0 0 0 2px #FF6B6B; }
+    .line { width: 2px; flex: 1; min-height: 20px; background: #F0E8E0; margin: 4px 0; }
+    .meal-card { flex: 1; background: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; border: 1px solid #F0E8E0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .meal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .meal-time { font-size: 11px; color: #888; font-family: monospace; }
+    .delete-btn { background: transparent; border: none; color: #DDD; cursor: pointer; font-size: 12px; }
+    .meal-name { font-size: 16px; font-weight: bold; color: #2D2D2D; margin-bottom: 6px; }
+    .meal-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .tag { background: #FFF3E0; border: 1px solid #FFE0B2; border-radius: 8px; padding: 2px 8px; font-size: 12px; color: #E65100; }
+    .tag-gray { background: #F5F5F5; border-radius: 8px; padding: 2px 8px; font-size: 12px; color: #888; }
+    .symptom-row { background: #FFF0F0; border: 1px solid #FFCDD2; border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+    .symptom-time { font-size: 10px; color: #888; font-family: monospace; }
+    .symptom-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+    .symptom-tag { background: #FFCDD2; border-radius: 8px; padding: 2px 7px; font-size: 12px; }
+    .symptom-notes { font-size: 12px; color: #888; margin-top: 4px; }
+    .add-symptom-btn { background: transparent; border: 1px dashed #FF6B6B; border-radius: 8px; padding: 5px 12px; font-size: 12px; color: #FF6B6B; cursor: pointer; margin-top: 4px; font-family: inherit; }
+    .fab { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #FF6B6B; color: #fff; border: none; border-radius: 28px; padding: 14px 32px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 16px rgba(255,107,107,0.4); font-family: inherit; }
+    .empty { text-align: center; padding: 48px 20px; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-text { font-size: 16px; color: #2D2D2D; font-weight: bold; }
+    .empty-sub { font-size: 13px; color: #888; margin-top: 4px; }
+    .history { display: flex; flex-direction: column; gap: 16px; }
+    .history-day { background: #fff; border-radius: 16px; padding: 14px 16px; border: 1px solid #F0E8E0; }
+    .history-date { font-size: 15px; font-weight: bold; color: #2D2D2D; margin-bottom: 8px; }
+    .history-stats { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .stat-chip { background: #F5F5F5; border-radius: 8px; padding: 3px 10px; font-size: 12px; color: #888; }
+    .history-meal { border-top: 1px solid #F0E8E0; padding-top: 8px; margin-top: 8px; }
+    .history-meal-time { font-size: 11px; color: #888; font-family: monospace; margin-right: 8px; }
+    .history-meal-name { font-size: 14px; color: #2D2D2D; }
+    .history-symptoms { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .symptom-tag-sm { background: #FFCDD2; border-radius: 6px; padding: 1px 6px; font-size: 11px; }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: flex-end; justify-content: center; z-index: 100; }
+    .modal-box { background: #fff; border-radius: 24px 24px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 420px; }
+    .modal-title { font-size: 18px; font-weight: bold; color: #2D2D2D; margin-bottom: 16px; }
+    .modal-input { width: 100%; border: 1px solid #F0E8E0; border-radius: 12px; padding: 12px 14px; font-size: 15px; margin-bottom: 12px; font-family: inherit; outline: none; }
+    .portion-row { display: flex; gap: 6px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .portion-label { font-size: 13px; color: #888; margin-right: 4px; }
+    .portion-btn { padding: 6px 14px; border-radius: 10px; border: 1px solid #F0E8E0; background: #fff; cursor: pointer; font-size: 14px; font-family: inherit; }
+    .portion-btn.active { background: #FF6B6B; color: #fff; border-color: #FF6B6B; }
+    .confirm-btn { width: 100%; background: #FF6B6B; color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; font-family: inherit; }
+    .symptom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .symptom-choice { padding: 10px 8px; border-radius: 12px; border: 1px solid #F0E8E0; background: #fff; cursor: pointer; font-size: 13px; text-align: left; font-family: inherit; }
+    .symptom-choice.active { background: #FFF0F0; border-color: #FF6B6B; }
+    .stress-grid { display: flex; gap: 8px; justify-content: center; }
+    .stress-choice { flex: 1; padding: 12px 4px; border-radius: 12px; border: 1px solid #F0E8E0; background: #fff; cursor: pointer; text-align: center; font-family: inherit; }
+    .stress-choice.active { background: #FFF3E0; border-color: #FFB347; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="login-screen" class="login-wrap">
+    <div class="login-logo">🫶</div>
+    <div class="login-title">СРК Дневник</div>
+    <div class="login-sub">Введите общий код — кто введёт тот же код, увидит те же данные</div>
+    <div class="login-box">
+      <div class="login-label">Код доступа</div>
+      <input class="login-input" id="code-input" placeholder="например: sestra123" />
+      <div class="login-error hidden" id="code-error"></div>
+      <div class="login-hint">💡 Придумайте любой код вместе — данные синхронизируются автоматически</div>
+      <button class="login-btn" onclick="handleLogin()">Войти →</button>
+    </div>
+  </div>
+
+  <div id="main-screen" class="hidden" style="display:flex;flex-direction:column;min-height:100vh;width:100%;">
+    <header>
+      <div class="header-left">
+        <div class="logo">🫶</div>
+        <div>
+          <div class="app-title">СРК Дневник</div>
+          <div class="app-sub" id="header-sub"></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <nav>
+          <button class="nav-btn active" id="btn-today" onclick="setView('today')">Сегодня</button>
+          <button class="nav-btn" id="btn-history" onclick="setView('history')">История</button>
+        </nav>
+        <button class="refresh-btn" onclick="manualRefresh()">🔄 обновить</button>
+      </div>
+    </header>
+    <div class="body" id="main-body"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay-meal" onclick="closeModal('meal')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">🍽️ Что ела?</div>
+    <input class="modal-input" id="meal-name" placeholder="Название блюда / продукта" />
+    <div class="portion-row">
+      <span class="portion-label">Порций:</span>
+      <button class="portion-btn" onclick="setPortion(this,'½')">½</button>
+      <button class="portion-btn active" onclick="setPortion(this,'1')">1</button>
+      <button class="portion-btn" onclick="setPortion(this,'1½')">1½</button>
+      <button class="portion-btn" onclick="setPortion(this,'2')">2</button>
+      <button class="portion-btn" onclick="setPortion(this,'3')">3</button>
+    </div>
+    <input class="modal-input" id="meal-notes" placeholder="Заметки (необязательно)" />
+    <button class="confirm-btn" onclick="addMeal()">Добавить</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay-symptom" onclick="closeModal('symptom')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">😣 Симптомы</div>
+    <div class="symptom-grid" id="symptom-grid"></div>
+    <div class="portion-row">
+      <span class="portion-label">Интенсивность:</span>
+      <button class="portion-btn" onclick="setSeverity(this,1)">1</button>
+      <button class="portion-btn" onclick="setSeverity(this,2)">2</button>
+      <button class="portion-btn active" onclick="setSeverity(this,3)">3</button>
+      <button class="portion-btn" onclick="setSeverity(this,4)">4</button>
+      <button class="portion-btn" onclick="setSeverity(this,5)">5</button>
+    </div>
+    <input class="modal-input" id="symptom-notes" placeholder="Заметки (необязательно)" />
+    <button class="confirm-btn" onclick="addSymptom()">Добавить</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay-stress" onclick="closeModal('stress')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">😰 Уровень стресса</div>
+    <div class="stress-grid" id="stress-grid"></div>
+  </div>
+</div>
+
+<script>
+const JSONBIN_KEY = "$2a$10$zJtLHIfIxq4YrthsR0hn7OwIphVe9NcZ0KjLkYaVpMmrmDmv8MjY2";
+const JSONBIN_BIN = "69b43d17c3097a1dd521a5a9";
+
+const SYMPTOMS = ["🤢 Тошнота","🫧 Вздутие","💥 Боль","🚽 Диарея","🧱 Запор","😮‍💨 Газы","😴 Усталость"];
+const STRESS_LABELS = ["😊","😐","😰","😤","🤯"];
+
+let currentCode = "";
+let days = {};
+let currentView = "today";
+let activeMealId = null;
+let selectedSymptoms = [];
+let selectedSeverity = 3;
+let selectedPortion = "1";
+
+function getTodayKey() { return new Date().toISOString().slice(0,10); }
+function formatTime(iso) { return new Date(iso).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}); }
+function formatDateLabel(key) {
+  if (key === getTodayKey()) return "Сегодня";
+  return new Date(key+"T12:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
+}
+
+async function cloudLoad(code) {
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_KEY, "X-Bin-Meta": "false" }
+    });
+    if (!r.ok) return {};
+    const data = await r.json();
+    return data[code] || {};
+  } catch {
+    const raw = localStorage.getItem("ibs-" + code);
+    return raw ? JSON.parse(raw) : {};
+  }
+}
+
+async function cloudSave(code, data) {
+  localStorage.setItem("ibs-" + code, JSON.stringify(data));
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_KEY, "X-Bin-Meta": "false" }
+    });
+    const existing = r.ok ? await r.json() : {};
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_KEY },
+      body: JSON.stringify({ ...existing, [code]: data })
+    });
+  } catch {}
+}
+
+async function handleLogin() {
+  const code = document.getElementById("code-input").value.trim().toLowerCase().replace(/\s+/g,"");
+  if (code.length < 3) {
+    const err = document.getElementById("code-error");
+    err.textContent = "Код должен быть минимум 3 символа";
+    err.classList.remove("hidden");
+    return;
+  }
+  currentCode = code;
+  localStorage.setItem("ibs-saved-code", code);
+  days = await cloudLoad(code);
+  document.getElementById("login-screen").classList.add("hidden");
+  document.getElementById("main-screen").classList.remove("hidden");
+  updateSub();
+  render();
+  setInterval(async () => { days = await cloudLoad(currentCode); render(); updateSub(); }, 30000);
+}
+
+function updateSub() {
+  document.getElementById("header-sub").textContent = "🔑 " + currentCode + " · " + formatTime(new Date().toISOString());
+}
+
+async function manualRefresh() {
+  days = await cloudLoad(currentCode);
+  render();
+  updateSub();
+}
+
+function getTodayData() { return days[getTodayKey()] || { meals: [], stress: null }; }
+
+async function saveDayData(newData) {
+  days = { ...days, [getTodayKey()]: newData };
+  await cloudSave(currentCode, days);
+  render();
+  updateSub();
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById("btn-today").classList.toggle("active", v==="today");
+  document.getElementById("btn-history").classList.toggle("active", v==="history");
+  render();
+}
+
+function render() {
+  const body = document.getElementById("main-body");
+  currentView === "today" ? renderToday(body) : renderHistory(body);
+}
+
+function renderToday(body) {
+  const td = getTodayData();
+  const stressBtn = td.stress != null
+    ? `<button class="stress-value-btn" onclick="openStress()">${STRESS_LABELS[td.stress-1]} ${td.stress}/5</button>`
+    : `<button class="stress-add-btn" onclick="openStress()">+ отметить</button>`;
+  let html = `<div class="stress-bar"><span class="stress-label">Стресс сегодня:</span>${stressBtn}</div><div class="timeline">`;
+  if (!td.meals.length) html += `<div class="empty"><div class="empty-icon">🍽️</div><div class="empty-text">Пока нет записей</div><div class="empty-sub">Добавь первый приём пищи</div></div>`;
+  td.meals.forEach((meal, i) => {
+    const line = i < td.meals.length-1 ? `<div class="line"></div>` : "";
+    const syms = meal.symptoms.map(s => `<div class="symptom-row"><span class="symptom-time">${formatTime(s.time)}</span><div class="symptom-tags">${s.items.map(x=>`<span class="symptom-tag">${x}</span>`).join("")}<span>${"🔥".repeat(s.severity)}</span></div>${s.notes?`<div class="symptom-notes">${s.notes}</div>`:""}</div>`).join("");
+    html += `<div class="meal-block"><div class="timeline-left"><div class="dot"></div>${line}</div><div class="meal-card"><div class="meal-header"><div class="meal-time">${formatTime(meal.time)}</div><button class="delete-btn" onclick="deleteMeal(${meal.id})">✕</button></div><div class="meal-name">${meal.name}</div><div class="meal-meta">${meal.portion?`<span class="tag">🥣 ${meal.portion} порц.</span>`:""} ${meal.notes?`<span class="tag-gray">${meal.notes}</span>`:""}</div>${syms}<button class="add-symptom-btn" onclick="openSymptom(${meal.id})">+ симптомы</button></div></div>`;
+  });
+  html += `</div><button class="fab" onclick="openMeal()">+ приём пищи</button>`;
+  body.innerHTML = html;
+}
+
+function renderHistory(body) {
+  const entries = Object.entries(days).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,14);
+  let html = `<div class="history">`;
+  if (!entries.length) html += `<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">История пуста</div></div>`;
+  entries.forEach(([key,data]) => {
+    const meals = data.meals||[];
+    const sc = meals.reduce((a,m)=>a+m.symptoms.length,0);
+    html += `<div class="history-day"><div class="history-date">${formatDateLabel(key)}</div><div class="history-stats"><span class="stat-chip">🍽️ ${meals.length} приём(ов)</span><span class="stat-chip">🤒 ${sc} симптом(ов)</span>${data.stress?`<span class="stat-chip">😰 стресс ${data.stress}/5</span>`:""}</div>${meals.map(m=>`<div class="history-meal"><span class="history-meal-time">${formatTime(m.time)}</span><span class="history-meal-name">${m.name}</span>${m.symptoms.length?`<div class="history-symptoms">${m.symptoms.flatMap(s=>s.items).map(x=>`<span class="symptom-tag-sm">${x}</span>`).join("")}</div>`:""}</div>`).join("")}</div>`;
+  });
+  html += `</div>`;
+  body.innerHTML = html;
+}
+
+function openMeal() {
+  selectedPortion="1";
+  document.getElementById("meal-name").value="";
+  document.getElementById("meal-notes").value="";
+  document.querySelectorAll("#overlay-meal .portion-btn").forEach((b,i)=>b.classList.toggle("active",i===1));
+  document.getElementById("overlay-meal").classList.remove("hidden");
+  setTimeout(()=>document.getElementById("meal-name").focus(),100);
+}
+
+function openSymptom(id) {
+  activeMealId=id; selectedSymptoms=[]; selectedSeverity=3;
+  document.getElementById("symptom-notes").value="";
+  document.getElementById("symptom-grid").innerHTML = SYMPTOMS.map(s=>`<button class="symptom-choice" onclick="toggleSymptom(this,'${s}')">${s}</button>`).join("");
+  document.querySelectorAll("#overlay-symptom .portion-btn").forEach((b,i)=>b.classList.toggle("active",i===2));
+  document.getElementById("overlay-symptom").classList.remove("hidden");
+}
+
+function openStress() {
+  const td=getTodayData();
+  document.getElementById("stress-grid").innerHTML = STRESS_LABELS.map((e,i)=>`<button class="stress-choice ${td.stress===i+1?'active':''}" onclick="setStress(${i+1})"><div style="font-size:24px">${e}</div><div style="font-size:12px;color:#888;margin-top:4px">${i+1}</div></button>`).join("");
+  document.getElementById("overlay-stress").classList.remove("hidden");
+}
+
+function closeModal(t) { document.getElementById("overlay-"+t).classList.add("hidden"); }
+
+function setPortion(btn,val) {
+  selectedPortion=val;
+  btn.closest(".portion-row").querySelectorAll(".portion-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function setSeverity(btn,val) {
+  selectedSeverity=val;
+  btn.closest(".portion-row").querySelectorAll(".portion-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function toggleSymptom(btn,s) {
+  if (selectedSymptoms.includes(s)) { selectedSymptoms=selectedSymptoms.filter(x=>x!==s); btn.classList.remove("active"); }
+  else { selectedSymptoms.push(s); btn.classList.add("active"); }
+}
+
+function addMeal() {
+  const name=document.getElementById("meal-name").value.trim();
+  if (!name) return;
+  const td=getTodayData();
+  saveDayData({...td,meals:[...td.meals,{id:Date.now(),time:new Date().toISOString(),name,portion:selectedPortion,notes:document.getElementById("meal-notes").value.trim(),symptoms:[]}]});
+  closeModal("meal");
+}
+
+function addSymptom() {
+  if (!selectedSymptoms.length) return;
+  const td=getTodayData();
+  const meals=td.meals.map(m=>m.id===activeMealId?{...m,symptoms:[...m.symptoms,{id:Date.now(),time:new Date().toISOString(),items:selectedSymptoms,severity:selectedSeverity,notes:document.getElementById("symptom-notes").value.trim()}]}:m);
+  saveDayData({...td,meals});
+  closeModal("symptom");
+}
+
+function setStress(val) { const td=getTodayData(); saveDayData({...td,stress:val}); closeModal("stress"); }
+function deleteMeal(id) { const td=getTodayData(); saveDayData({...td,meals:td.meals.filter(m=>m.id!==id)}); }
+
+document.getElementById("code-input").addEventListener("keydown",e=>{if(e.key==="Enter")handleLogin();});
+
+// Автовход если код уже сохранён
+(async function autoLogin() {
+  const saved = localStorage.getItem("ibs-saved-code");
+  if (saved) {
+    document.getElementById("code-input").value = saved;
+    await handleLogin();
+  }
+})();
+</script>
+</body>
+</html>
